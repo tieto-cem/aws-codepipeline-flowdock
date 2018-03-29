@@ -1,0 +1,42 @@
+
+service: flowdock-codepipeline
+
+provider:
+  name: aws
+  runtime: python3.6
+  region: eu-west-1
+  iamRoleStatements:
+    -  Effect: "Allow"
+       Action:
+        - "codepipeline:GetPipelineExecution"
+        - "codepipeline:GetPipelineState"
+       Resource:
+        - "*"
+
+functions:
+  lambda:
+    handler: handler.main
+    environment:
+      FLOWDOCK_TOKEN: ${env:FLOWDOCK_TOKEN}
+    events:
+    - cloudwatchEvent:
+        event:
+          source:
+            - "aws.codepipeline"
+          detail-type:
+            - "CodePipeline Pipeline Execution State Change"
+            - "CodePipeline Action Execution State Change"
+package:
+  exclude:
+    - env/**
+    - .git/**
+    - .idea/**
+    - events/**
+    - node_modules
+
+plugins:
+  - serverless-python-requirements
+custom:
+  pythonRequirements:
+    pythonBin: env/bin/python
+    fileName: requirements-sls.txt
